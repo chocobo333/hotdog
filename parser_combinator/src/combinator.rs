@@ -105,7 +105,11 @@ pub fn map<ISE: InputStateError, O1, O2>(p: impl Parser<ISE, O1>, callback: impl
     }
 }
 
-pub fn map_with_state<ISE: InputStateError, O1, O2>(p: impl Parser<ISE, O1>, callback: impl Fn(&mut ISE::State, O1) -> O2 + Clone) -> impl Parser<ISE, O2> {
+pub fn map_with_state<ISE: InputStateError, O1, O2, P1, F>(p: P1, callback: F) -> impl Parser<ISE, O2>
+where
+    P1: Parser<ISE, O1>,
+    F: Fn(&mut ISE::State, O1) -> O2 + Clone,
+{
     move |state: &mut ISE::State, s: ISE::Input| {
         let (s, res) = p.parse(state, s)?;
         Ok((s, callback(state, res)))
