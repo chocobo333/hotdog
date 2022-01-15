@@ -6,6 +6,7 @@ pub mod pattern;
 pub mod position;
 pub mod combinator;
 pub mod repeat;
+pub mod lookahead;
 
 
 #[cfg(test)]
