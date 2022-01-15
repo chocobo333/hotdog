@@ -172,6 +172,16 @@ where
     delimited(outer.clone(), inner, outer)
 }
 
+impl<ISE: InputStateError, O1, O2, P1: Parser<ISE, O1>, P2: Parser<ISE, O2>> Parser<ISE, (O1, O2)> for (P1, P2)
+where
+    ISE::Input: Clone,
+    ISE::State: BackTrack,
+{
+    fn parse(&self, state: &mut ISE::State, s: ISE::Input) -> PResult<ISE, (O1, O2)> {
+        pair(self.0.clone(), self.1.clone()).parse(state, s)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -188,6 +198,13 @@ mod tests {
     #[test]
     fn test_pair() {
         let parser = pair(pattern("a"), pattern("b"));
+        let res = parser.parse(&mut (), "abc");
+        assert!(res.is_ok());
+        let res = res.unwrap();
+        assert_eq!(res.1, ("a", "b"));
+        assert_eq!(res.0, "c");
+
+        let parser = (pattern("a"), pattern("b"));
         let res = parser.parse(&mut (), "abc");
         assert!(res.is_ok());
         let res = res.unwrap();
