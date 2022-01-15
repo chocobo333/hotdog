@@ -4,13 +4,21 @@ use regex::Regex;
 use crate::parser::*;
 
 
-#[derive(Clone)]
 struct Pattern<I, S: ProvidePosition<I>> {
     re: Regex,
     marker: [(I, S); 0]
 }
 
-impl<'a, S: ProvidePosition<&'a str> + Clone> Parser<(&'a str, S), &'a str> for Pattern<&'a str, S> {
+impl<I, S: ProvidePosition<I>> Clone for Pattern<I, S> {
+    fn clone(&self) -> Self {
+        Self {
+            re: self.re.clone(),
+            marker: [],
+        }
+    }
+}
+
+impl<'a, S: ProvidePosition<&'a str>> Parser<(&'a str, S), &'a str> for Pattern<&'a str, S> {
     fn parse(&self, state: &mut S, s: &'a str) -> PResult<(&'a str, S), &'a str> {
         if let Some(mat) = self.re.find(s) {
             state.shift(mat.as_str());
@@ -21,7 +29,7 @@ impl<'a, S: ProvidePosition<&'a str> + Clone> Parser<(&'a str, S), &'a str> for 
     }
 }
 
-pub fn pattern<'a, S: ProvidePosition<&'a str> + Clone>(pat: &'static str) -> impl Parser<(&'a str, S), &'a str> {
+pub fn pattern<'a, S: ProvidePosition<&'a str>>(pat: &'static str) -> impl Parser<(&'a str, S), &'a str> {
     let regex = "^".to_string() + pat;
     let re = Regex::new(&regex).unwrap();
     Pattern {
